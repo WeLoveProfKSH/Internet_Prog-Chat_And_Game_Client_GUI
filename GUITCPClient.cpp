@@ -107,6 +107,7 @@ void DisplayError(const char *msg)
 // TCP 클라이언트 시작 부분
 DWORD WINAPI ClientMain(LPVOID arg)
 {
+	
 	int retval;
 
 	// 소켓 생성
@@ -139,7 +140,7 @@ DWORD WINAPI ClientMain(LPVOID arg)
 			DisplayError("send()");
 			break;
 		}
-		DisplayText("[TCP 클라이언트] %d바이트를 보냈습니다.\r\n", retval);
+		//DisplayText("[TCP 클라이언트] %d바이트를 보냈습니다.\r\n", retval);
 
 		// 데이터 받기
 		retval = recv(sock, buf, retval, MSG_WAITALL);
@@ -152,8 +153,8 @@ DWORD WINAPI ClientMain(LPVOID arg)
 
 		// 받은 데이터 출력
 		buf[retval] = '\0';
-		DisplayText("[TCP 클라이언트] %d바이트를 받았습니다.\r\n", retval);
-		DisplayText("[받은 데이터] %s\r\n", buf);
+		//DisplayText("[TCP 클라이언트] %d바이트를 받았습니다.\r\n", retval);
+		DisplayText("[받은 데이터] : %s\r\n", buf);
 
 		EnableWindow(hSendButton, TRUE); // 보내기 버튼 활성화
 		SetEvent(hReadEvent); // 읽기 완료 알림
