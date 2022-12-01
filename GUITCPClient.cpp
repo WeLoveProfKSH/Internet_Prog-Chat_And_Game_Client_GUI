@@ -47,9 +47,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	return 0;
 }
 
+DWORD WINAPI Svrrecv(LPVOID arg) {	// 메시지 수신 스레드용
+	char r[BUFSIZE + 1];	// 수신한 데이터를 담아둘 char 배열
+	int retval;
+	while (1) {	// 서버가 주는 데이터 받기
+		strcpy(r, "");	// recv()함수로 데이터를 받기전에 배열 비우기
+		retval = recv(sock, r, BUFSIZE, 0);	// 데이터 수신
+
+		// 받은 데이터 출력
+		buf[retval] = '\0';
+		//DisplayText("[TCP 클라이언트] %d바이트를 받았습니다.\r\n", retval);
+		DisplayText("[ 메시지 수신 ] : %s\r\n", buf);
+	}
+}
+
 // 대화상자 프로시저
-INT_PTR CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
+INT_PTR CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
 	switch (uMsg) {
 	case WM_INITDIALOG:
 		hEdit1 = GetDlgItem(hDlg, IDC_EDIT1);
@@ -123,6 +136,11 @@ DWORD WINAPI ClientMain(LPVOID arg)
 	retval = connect(sock, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR) err_quit("connect()");
 
+	// 메시지 받는 스레드 하나 생성
+	HANDLE hThread = CreateThread(NULL, 0, Svrrecv, (LPVOID)sock, 0, NULL);
+	if (hThread == NULL) { closesocket(sock); }
+	else { CloseHandle(hThread); }
+
 	// 서버와 데이터 통신
 	while (1) {
 		WaitForSingleObject(hWriteEvent, INFINITE); // 쓰기 완료 대기
@@ -142,23 +160,8 @@ DWORD WINAPI ClientMain(LPVOID arg)
 		}
 		//DisplayText("[TCP 클라이언트] %d바이트를 보냈습니다.\r\n", retval);
 
-		// 데이터 받기
-		retval = recv(sock, buf, retval, MSG_WAITALL);
-		if (retval == SOCKET_ERROR) {
-			DisplayError("recv()");
-			break;
-		}
-		else if (retval == 0)
-			break;
-
-		// 받은 데이터 출력
-		buf[retval] = '\0';
-		//DisplayText("[TCP 클라이언트] %d바이트를 받았습니다.\r\n", retval);
-		DisplayText("[받은 데이터] : %s\r\n", buf);
-
 		EnableWindow(hSendButton, TRUE); // 보내기 버튼 활성화
 		SetEvent(hReadEvent); // 읽기 완료 알림
 	}
-
 	return 0;
 }
