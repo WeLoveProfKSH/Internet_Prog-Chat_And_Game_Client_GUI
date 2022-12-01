@@ -1,5 +1,8 @@
 #include "Common.h"
 #include "resource.h"
+#include <iostream>
+#include <string>
+#include <Locale>
 
 #define SERVERIP   "127.0.0.1"
 #define SERVERPORT 9000
@@ -7,6 +10,8 @@
 
 // 대화상자 프로시저
 INT_PTR CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK Nick(HWND, UINT, WPARAM, LPARAM);
+
 // 에디트 컨트롤 출력 함수
 void DisplayText(const char *fmt, ...);
 // 소켓 함수 오류 출력
@@ -16,13 +21,21 @@ DWORD WINAPI ClientMain(LPVOID arg);
 
 SOCKET sock; // 소켓
 char buf[BUFSIZE + 1]; // 데이터 송수신 버퍼
+char send_msg[BUFSIZE + 1]; // 보낼 메시지
+char nick[20];		// 닉네임
+
 HANDLE hReadEvent, hWriteEvent; // 이벤트
 HWND hSendButton; // 보내기 버튼
 HWND hEdit1, hEdit2; // 에디트 컨트롤
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-	LPSTR lpCmdLine, int nCmdShow)
-{
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow){	// 메인
+	setlocale(LC_ALL, "korean");// Locale 설정
+
+	// 닉네임 입력
+	DialogBox(hInstance, MAKEINTRESOURCE(IDD_DIALOG2), NULL, Nick);
+	if (nick == "") exit(0);	// 입력 안하면 종료
+
 	// 윈속 초기화
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -59,6 +72,33 @@ DWORD WINAPI Svrrecv(LPVOID arg) {	// 메시지 수신 스레드용
 		//DisplayText("[TCP 클라이언트] %d바이트를 받았습니다.\r\n", retval);
 		DisplayText("[ 메시지 수신 ] : %s\r\n", r);
 	}
+}
+
+// 대화상자 프로시저 (닉네임 정하기)
+INT_PTR CALLBACK Nick(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	TCHAR strData[100];
+	char tmp[20];
+
+	switch (uMsg) {
+	case WM_INITDIALOG:
+		return 1;
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case IDOK:
+			GetDlgItemText(hDlg, IDC_EDIT3, strData, 100);
+
+			WideCharToMultiByte(CP_ACP, 0, strData, 20, tmp, 20, NULL, NULL);
+			strncat(nick, tmp, 20);
+
+			EndDialog(hDlg, 0); // 대화상자 닫기
+			break;
+		case IDCANCEL:
+			EndDialog(hDlg, 0); // 대화상자 닫기
+			break;
+		}
+		break;
+	}
+	return 0;
 }
 
 // 대화상자 프로시저
@@ -120,7 +160,6 @@ void DisplayError(const char *msg)
 // TCP 클라이언트 시작 부분
 DWORD WINAPI ClientMain(LPVOID arg)
 {
-	
 	int retval;
 
 	// 소켓 생성
@@ -144,7 +183,6 @@ DWORD WINAPI ClientMain(LPVOID arg)
 	// 서버와 데이터 통신
 	while (1) {
 		WaitForSingleObject(hWriteEvent, INFINITE); // 쓰기 완료 대기
-
 		// 문자열 길이가 0이면 보내지 않음
 		if (strlen(buf) == 0) {
 			EnableWindow(hSendButton, TRUE); // 보내기 버튼 활성화
@@ -152,8 +190,13 @@ DWORD WINAPI ClientMain(LPVOID arg)
 			continue;
 		}
 
+		//strcpy(buf, nick.c_str());
+		strcpy(send_msg, nick);
+		strncat(send_msg, " : ", sizeof(" : "));
+		strncat(send_msg, buf, sizeof(buf));
+
 		// 데이터 보내기
-		retval = send(sock, buf, (int)strlen(buf), 0);
+		retval = send(sock, send_msg, (int)strlen(send_msg), 0);
 		if (retval == SOCKET_ERROR) {
 			DisplayError("send()");
 			break;
