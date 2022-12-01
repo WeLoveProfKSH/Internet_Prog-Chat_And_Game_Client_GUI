@@ -20,7 +20,7 @@ void DisplayError(const char *msg);
 DWORD WINAPI ClientMain(LPVOID arg);
 
 SOCKET sock; // 소켓
-char buf[BUFSIZE + 1]; // 데이터 송수신 버퍼
+char buf[BUFSIZE + 1]; // 데이터 송수신 버퍼, 입력 받은 메시지를 저장
 char send_msg[BUFSIZE + 1]; // 보낼 메시지
 char nick[20];		// 닉네임
 
