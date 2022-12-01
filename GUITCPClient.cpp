@@ -55,9 +55,9 @@ DWORD WINAPI Svrrecv(LPVOID arg) {	// 메시지 수신 스레드용
 		retval = recv(sock, r, BUFSIZE, 0);	// 데이터 수신
 
 		// 받은 데이터 출력
-		buf[retval] = '\0';
+		r[retval] = '\0';
 		//DisplayText("[TCP 클라이언트] %d바이트를 받았습니다.\r\n", retval);
-		DisplayText("[ 메시지 수신 ] : %s\r\n", buf);
+		DisplayText("[ 메시지 수신 ] : %s\r\n", r);
 	}
 }
 
