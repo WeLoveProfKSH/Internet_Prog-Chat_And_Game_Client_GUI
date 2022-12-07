@@ -70,7 +70,7 @@ DWORD WINAPI Svrrecv(LPVOID arg) {	// 메시지 수신 스레드용
 		// 받은 데이터 출력
 		r[retval] = '\0';
 		//DisplayText("[TCP 클라이언트] %d바이트를 받았습니다.\r\n", retval);
-		DisplayText("[ 메시지 수신 ] : %s\r\n", r);
+		//DisplayText("[ 메시지 수신 ] : %s\r\n", r);
 	}
 }
 
@@ -195,14 +195,14 @@ DWORD WINAPI ClientMain(LPVOID arg)
 		strncat(send_msg, " : ", sizeof(" : "));
 		strncat(send_msg, buf, sizeof(buf));
 
+		DisplayText("%hs\n", send_msg);
+
 		// 데이터 보내기
 		retval = send(sock, send_msg, (int)strlen(send_msg), 0);
 		if (retval == SOCKET_ERROR) {
 			DisplayError("send()");
 			break;
 		}
-		DisplayText("%hs\n", send_msg);
-
 		EnableWindow(hSendButton, TRUE); // 보내기 버튼 활성화
 		SetEvent(hReadEvent); // 읽기 완료 알림
 	}
