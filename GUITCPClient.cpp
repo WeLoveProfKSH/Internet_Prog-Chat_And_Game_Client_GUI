@@ -195,14 +195,14 @@ DWORD WINAPI ClientMain(LPVOID arg)
 		strncat(send_msg, " : ", sizeof(" : "));
 		strncat(send_msg, buf, sizeof(buf));
 
+		DisplayText("%hs\n", send_msg);
+
 		// 데이터 보내기
 		retval = send(sock, send_msg, (int)strlen(send_msg), 0);
 		if (retval == SOCKET_ERROR) {
 			DisplayError("send()");
 			break;
 		}
-		DisplayText("%hs\n", send_msg);
-
 		EnableWindow(hSendButton, TRUE); // 보내기 버튼 활성화
 		SetEvent(hReadEvent); // 읽기 완료 알림
 	}
