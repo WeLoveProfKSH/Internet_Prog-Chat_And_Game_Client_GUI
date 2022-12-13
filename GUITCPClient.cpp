@@ -70,7 +70,7 @@ DWORD WINAPI Svrrecv(LPVOID arg) {	// 메시지 수신 스레드용
 		// 받은 데이터 출력
 		r[retval] = '\0';
 		//DisplayText("[TCP 클라이언트] %d바이트를 받았습니다.\r\n", retval);
-		//DisplayText("[ 메시지 수신 ] : %s\r\n", r);
+		DisplayText("%s\n", r);
 	}
 }
 
